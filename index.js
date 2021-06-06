@@ -1,10 +1,10 @@
 'use strict';
 
-var bodyParser = require('body-parser');
 var couchbase = require('couchbase');
 var express = require('express');
 var uuid = require('uuid');
 var dateFormat = require('dateformat');
+var cors = require('cors')
 
 // Create a Couchbase Cluster connection
 var cluster = new couchbase.Cluster(
@@ -20,21 +20,21 @@ var coll = bucket.defaultCollection();
 
 // Set up our express application
 var app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static('public'));
+app.use(cors())
 
-app.get('/api/applications', async (req, res) => {
-  const status = req.query.status;
+
+app.get('/api/application', async (req, res) => {
+  const email = req.query.email;
 
   let qs;
   let result;
 
-  qs = `SELECT meta(default).id,default.* from \`default\``;
-  if (status) {
-    qs += ` WHERE status = '${status.toUpperCase()}'`;
-  }
+  qs = `SELECT meta(default).id,default.* from \`default\` WHERE email = '${email.toLocaleLowerCase()}'`;
   qs += ";";
 
+  console.log(qs)
 
   try {
     result = await cluster.query(qs)
@@ -50,13 +50,33 @@ app.post('/api/applications', async (req, res) => {
   let payload = req.body
   let result;
 
+  console.log(payload)
+
   let key = `application:${uuid.v4()}`
   let date = dateFormat(new Date(), "yyyy-mm-dd h:MM:ss");
   let document = {
-    "name": payload.name,
-    "school": payload.school,
+    "city": payload.city,
+    "collegeGrade": payload.collegeGrade,
+    "dateOfBirth": payload.dateOfBirth,
+    "degreeStatus": payload.degreeStatus,
+    "email": payload.email,
+    "firstDegree": payload.firstDegree,
+    "firstName": payload.firstName,
+    "hsStatus": payload.hsStatus,
+    "isCitizen": payload.isCitizen,
+    "lastName": payload.lastName,
+    "middleInitial": payload.middleInitial,
+    "phoneNumber": payload.phoneNumber,
+    "residentDate": payload.residentDate,
     "ssn": payload.ssn,
-    "status": "PENDING",
+    "state": payload.state,
+    "street": payload.street,
+    "workStudy": payload.workStudy,
+    "zipcode": payload.zipcode,
+
+    // everything above here is from user payload
+    "username": payload.username,
+    "status": "SUBMITTED",
     "updated": date,
     "submitted": date
   }
